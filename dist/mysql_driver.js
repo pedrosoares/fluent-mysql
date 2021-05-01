@@ -3,19 +3,19 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.MysqlDriver = void 0;
 
 var _mysql = _interopRequireDefault(require("mysql"));
 
-var _SelectBuilder = _interopRequireDefault(require("./Mysql/SelectBuilder"));
-
-var _InsertBuilder = _interopRequireDefault(require("./Mysql/InsertBuilder"));
-
-var _DeleteBuilder = _interopRequireDefault(require("./Mysql/DeleteBuilder"));
-
-var _UpdateBuilder = _interopRequireDefault(require("./Mysql/UpdateBuilder"));
-
 var _helper = require("./helper");
+
+var _select = require("./builders/select.builder");
+
+var _insert = require("./builders/insert.builder");
+
+var _delete = require("./builders/delete.builder");
+
+var _update = require("./builders/update.builder");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -28,14 +28,11 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var transactions = {};
 
 var MysqlDriver = /*#__PURE__*/function () {
-  function MysqlDriver(connections) {
+  function MysqlDriver(configurator) {
     _classCallCheck(this, MysqlDriver);
 
-    var options = Object.assign({
-      connectionLimit: 10
-    }, connections['mysql']);
-    delete options.driver;
-    this.pool = _mysql["default"].createPool(options);
+    this.configurator = configurator;
+    this.pool = null;
   }
 
   _createClass(MysqlDriver, [{
@@ -53,7 +50,20 @@ var MysqlDriver = /*#__PURE__*/function () {
     key: "getConnection",
     value: function getConnection() {
       var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      if (options.hasOwnProperty("transaction")) return transactions[options.transaction];else return this.pool;
+      if (options.hasOwnProperty("transaction")) return transactions[options.transaction];
+
+      if (!this.pool) {
+        var conn_options = this.configurator.get_connection_configuration(this.configurator.default_connection);
+
+        if (conn_options.driver !== "mysql") {
+          throw new Error("Invalid driver (".concat(conn_options.driver, ") used on mysql"));
+        }
+
+        delete conn_options.driver;
+        this.pool = new _mysql["default"].createPool(conn_options);
+      }
+
+      return this.pool;
     }
   }, {
     key: "commit",
@@ -105,27 +115,26 @@ var MysqlDriver = /*#__PURE__*/function () {
   }, {
     key: "parseSelect",
     value: function parseSelect(table, columns, filters, limit, order, groups) {
-      return new _SelectBuilder["default"](table, columns, filters, limit, order, groups).parse();
+      return new _select.SelectBuilder(table, columns, filters, limit, order, groups).parse();
     }
   }, {
     key: "parseInsert",
     value: function parseInsert(table, columns, values) {
-      return new _InsertBuilder["default"](table, columns, values).parse();
+      return new _insert.InsertBuilder(table, columns, values).parse();
     }
   }, {
     key: "parseDelete",
     value: function parseDelete(table, filters) {
-      return new _DeleteBuilder["default"](table, filters).parse();
+      return new _delete.DeleteBuilder(table, filters).parse();
     }
   }, {
     key: "parseUpdate",
     value: function parseUpdate(table, columns, filters, limit, order) {
-      return new _UpdateBuilder["default"](table, columns, filters, limit, order).parse();
+      return new _update.UpdateBuilder(table, columns, filters, limit, order).parse();
     }
   }]);
 
   return MysqlDriver;
 }();
 
-var _default = MysqlDriver;
-exports["default"] = _default;
+exports.MysqlDriver = MysqlDriver;

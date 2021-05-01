@@ -3,9 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.SelectBuilder = void 0;
 
-var _FilterBuilder = _interopRequireDefault(require("./FilterBuilder"));
+var _filter = _interopRequireDefault(require("./filter.builder"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -37,7 +37,7 @@ var SelectBuilder = /*#__PURE__*/function () {
     value: function parse() {
       var _this = this;
 
-      var whereBuilder = new _FilterBuilder["default"](this.filters);
+      var whereBuilder = new _filter["default"](this.filters);
       var data = this.columns.map(function (col, index) {
         return "".concat(col).concat(index >= _this.columns.length - 1 ? '' : ', ');
       }).join('');
@@ -80,5 +80,4 @@ var SelectBuilder = /*#__PURE__*/function () {
   return SelectBuilder;
 }();
 
-var _default = SelectBuilder;
-exports["default"] = _default;
+exports.SelectBuilder = SelectBuilder;

@@ -3,9 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.UpdateBuilder = void 0;
 
-var _FilterBuilder = _interopRequireDefault(require("./FilterBuilder"));
+var _filter = _interopRequireDefault(require("./filter.builder"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -34,7 +34,7 @@ var UpdateBuilder = /*#__PURE__*/function () {
   }, {
     key: "parse",
     value: function parse() {
-      var whereBuilder = new _FilterBuilder["default"](this.filters);
+      var whereBuilder = new _filter["default"](this.filters);
       var columns = Object.keys(this.columns);
       var values = Object.values(this.columns);
       var data = columns.map(function (col, index) {
@@ -76,5 +76,4 @@ var UpdateBuilder = /*#__PURE__*/function () {
   return UpdateBuilder;
 }();
 
-var _default = UpdateBuilder;
-exports["default"] = _default;
+exports.UpdateBuilder = UpdateBuilder;

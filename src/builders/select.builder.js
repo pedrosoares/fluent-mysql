@@ -1,40 +1,44 @@
-import FilterBuilder from "./FilterBuilder";
+import FilterBuilder from "./filter.builder";
 
-class UpdateBuilder {
+class SelectBuilder {
 
-    constructor(table, columns, filters, limit, order){
+    constructor(table, columns, filters, limit, order, groups) {
         this.table = table;
         this.columns = columns;
 
         this.filters = filters;
+        this.groups = groups;
 
         this.limit = limit || {};
         this.order = order || {};
     }
 
-    tablerize(column){
+    tablerize(column) {
         return `\`${column}\``;
     }
 
-    parse(){
+    parse() {
         const whereBuilder = new FilterBuilder(this.filters);
 
-        const columns = Object.keys(this.columns);
-        const values = Object.values(this.columns);
-
-        const data = columns.map((col, index) =>
-            `${col} = ?${index >= (columns.length-1) ? '' : ', '}`
+        const data = this.columns.map((col, index) =>
+            `${col}${index >= (this.columns.length-1) ? '' : ', '}`
         ).join('');
 
         const whereBuilded = whereBuilder.parse();
 
+        const groups = `${
+            this.groups.length > 0 ? ' GROUP BY ' : ''
+        }${
+            this.groups.map(a => this.tablerize(a)).join(',')
+        }`;
+
         return {
-            sql: `UPDATE ${this.tablerize(this.table)} SET ${data} ${whereBuilded.sql} ${this.parseOrder()} ${this.parseLimit()}`.trim(),
-            data: values.concat(whereBuilded.data)
+            sql: `SELECT ${data} FROM ${this.tablerize(this.table)} ${whereBuilded.sql} ${groups} ${this.parseOrder()} ${this.parseLimit()}`.trim(),
+            data: whereBuilded.data
         }
     }
 
-    parseLimit(){
+    parseLimit() {
         let skip = "";
         let take = "";
         if(!!this.limit.skip){
@@ -46,7 +50,7 @@ class UpdateBuilder {
         return `${take} ${skip}`.trim();
     }
 
-    parseOrder(){
+    parseOrder() {
         if(!!this.order.column && !!this.order.direction) {
             return `ORDER BY ${this.tablerize(this.order.column)} ${this.order.direction}`;
         }
@@ -55,4 +59,4 @@ class UpdateBuilder {
 
 }
 
-export default UpdateBuilder;
+export { SelectBuilder };

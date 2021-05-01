@@ -1,20 +1,17 @@
 import mysql from "mysql";
-import SelectBuilder from "./Mysql/SelectBuilder";
-import InsertBuilder from "./Mysql/InsertBuilder";
-import DeleteBuilder from "./Mysql/DeleteBuilder";
-import UpdateBuilder from "./Mysql/UpdateBuilder";
-import {uuidv4} from "./helper";
+import { uuidv4 } from "./helper";
+import { SelectBuilder } from "./builders/select.builder";
+import { InsertBuilder } from "./builders/insert.builder";
+import { DeleteBuilder } from "./builders/delete.builder";
+import { UpdateBuilder } from "./builders/update.builder";
 
 const transactions = {};
 
 class MysqlDriver {
 
-    constructor(connections){
-        const options = Object.assign({
-            connectionLimit : 10
-        }, connections['mysql']);
-        delete options.driver;
-        this.pool  = mysql.createPool(options);
+    constructor(configurator) {
+        this.configurator = configurator;
+        this.pool = null;
     }
 
     query(options, sql, params) {
@@ -26,10 +23,16 @@ class MysqlDriver {
     }
 
     getConnection(options={}){
-        if(options.hasOwnProperty("transaction"))
-            return transactions[options.transaction];
-        else
-            return this.pool;
+        if(options.hasOwnProperty("transaction")) return transactions[options.transaction];
+        if(!this.pool) {
+            const conn_options = this.configurator.get_connection_configuration(this.configurator.default_connection);
+            if (conn_options.driver !== "mysql") {
+                throw new Error(`Invalid driver (${conn_options.driver}) used on mysql`);
+            }
+            delete conn_options.driver;
+            this.pool = new mysql.createPool(conn_options);
+        }
+        return this.pool;
     }
 
     commit(transaction) {
@@ -93,4 +96,4 @@ class MysqlDriver {
 
 }
 
-export default MysqlDriver;
+export { MysqlDriver };
