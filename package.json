@@ -1,5 +1,5 @@
 {
-  "name": "fluent-mysql",
+  "name": "fluent-mysql-driver",
   "version": "0.0.1",
   "description": "Mysql driver to fluent-orm",
   "main": "dist/index.js",
