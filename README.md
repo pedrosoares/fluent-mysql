@@ -9,7 +9,7 @@ npm install fluent-mysql-driver
 on the fluent configuration file
 ```JavaScript
 const { configurator }  = require("fluent-orm");
-const mysql_driver = require("fluent-mysql");
+const mysql_driver = require("fluent-mysql-driver");
 // Register Driver
 configurator.use(mysql_driver.configure);
 // Configure driver connection
